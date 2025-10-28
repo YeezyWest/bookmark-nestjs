@@ -1,9 +1,17 @@
-import { Controller, Get } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  UseGuards,
+} from '@nestjs/common';
+import { JwtGuard } from '../auth/guard/jwt.guard.js';
+import { GetUser } from '../auth/decorator/get-user.decorator.js';
+import { User } from '../generated/client.js';
 
+@UseGuards(JwtGuard)
 @Controller('users')
-export class AuthController {
+export class UserController {
   @Get('me')
-  getMe() {
-    return 'user info';
+  getMe(@GetUser() user: Omit<User, 'hash'>) {
+    return user;
   }
 }
