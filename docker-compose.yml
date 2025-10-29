@@ -9,7 +9,20 @@ services:
       POSTGRES_PASSWORD: 123
       POSTGRES_DB: nest
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata_dev:/var/lib/postgresql/data
+    networks:
+      - freecodecamp
+
+  test-db:
+    image: postgres:13
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: nest
+    volumes:
+      - pgdata_test:/var/lib/postgresql/data
     networks:
       - freecodecamp
 
@@ -17,4 +30,5 @@ networks:
   freecodecamp:
 
 volumes:
-  pgdata:
+  pgdata_dev:
+  pgdata_test:
