@@ -7,6 +7,9 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../src/prisma/prisma.service.js';
 import { AuthDto } from '../src/auth/dto/auth.dto.js';
+import { EditUserDto } from '../src/user/dto/edit-user.dto.js';
+import { CreateBookmarkDto } from '../src/bookmark/dto/create-bookmark.dto.js';
+import { EditBookmarkDto } from '../src/bookmark/dto/edit-bookmark.dto.js';
 
 describe('App e2e', () => {
   let app: INestApplication;
@@ -80,8 +83,7 @@ describe('App e2e', () => {
           .spec()
           .post('/auth/signup')
           .withBody(dto)
-          .expectStatus(201)
-          .inspect();
+          .expectStatus(201);
       });
     });
 
@@ -90,7 +92,7 @@ describe('App e2e', () => {
         email: 'yadeshin57@gmail.com',
         password: '123456789',
       };
-      let accessToken: string;
+
       it('should throw if email empty', () => {
         return pactum
           .spec()
@@ -123,7 +125,6 @@ describe('App e2e', () => {
           .post('/auth/signin')
           .withBody(dto)
           .expectStatus(200)
-          .inspect()
           .stores(
             'userAccessToken',
             'access_token',
@@ -146,24 +147,128 @@ describe('App e2e', () => {
       });
     });
 
-    // describe('Edit Me', () => {
-    //   it('should edit me', () => {
-    //     return pactum
-    //       .spec()
-    //       .patch('/user/me')
-    //       .withBody({
-    //         name: 'Yusuf',
-    //       })
-    //       .expectStatus(200);
-    //   });
-    // });
+    describe('Edit Me', () => {
+      const dto: EditUserDto = {
+        email: 'yadeshin57@gmail.com',
+      };
+      it('should edit me', () => {
+        return pactum
+          .spec()
+          .patch('/users')
+          .withHeaders({
+            Authorization:
+              'Bearer $S{userAccessToken}',
+          })
+          .withBody(dto)
+          .expectStatus(200)
+          .expectBodyContains(dto.email);
+      });
+    });
   });
 
-  // describe('Bookmark', () => {
-  //   describe('Create Bookmark', () => {});
-  //   describe('Get Bookmarks', () => {});
-  //   describe('Get Bookmark by id', () => {});
-  //   describe('Edit Bookmark id', () => {});
-  //   describe('Delete Bookmark id', () => {});
-  // });
+  describe('Bookmark', () => {
+    describe('Get Empty Bookmarks', () => {
+      it('should get empty bookmarks', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks')
+          .withHeaders({
+            Authorization:
+              'Bearer $S{userAccessToken}',
+          })
+          .expectStatus(200)
+          .expectBody([]);
+      });
+    });
+    describe('Create Bookmark', () => {
+      const dto: CreateBookmarkDto = {
+        title: 'Test Bookmark',
+        description: 'Test Description',
+        url: 'https://test.com',
+      };
+      it('should create bookmark', () => {
+        return pactum
+          .spec()
+          .post('/bookmarks')
+          .withHeaders({
+            Authorization:
+              'Bearer $S{userAccessToken}',
+          })
+          .withBody(dto)
+          .expectStatus(201)
+          .stores('bookmarkId', 'id');
+      });
+    });
+    describe('Get Bookmarks', () => {
+      it('should get bookmarks', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks')
+          .withHeaders({
+            Authorization:
+              'Bearer $S{userAccessToken}',
+          })
+          .expectStatus(200)
+          .expectJsonLength(1);
+      });
+    });
+
+    describe('Get Bookmark by id', () => {
+      it('should get bookmark by id', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks/{id}')
+          .withPathParams('id', '$S{bookmarkId}')
+          .withHeaders({
+            Authorization:
+              'Bearer $S{userAccessToken}',
+          })
+          .expectStatus(200)
+          .expectBodyContains('$S{bookmarkId}');
+      });
+    });
+    describe('Edit Bookmark id', () => {
+      const dto: EditBookmarkDto = {
+        title: 'Updated Bookmark',
+        description: 'Updated Description',
+        url: 'https://updated.com',
+      };
+      it('should edit bookmark by id', () => {
+        return pactum
+          .spec()
+          .patch('/bookmarks/{id}')
+          .withPathParams('id', '$S{bookmarkId}')
+          .withHeaders({
+            Authorization:
+              'Bearer $S{userAccessToken}',
+          })
+          .withBody(dto)
+          .expectStatus(200);
+      });
+    });
+    describe('Delete Bookmark id', () => {
+      it('should delete bookmark by id', () => {
+        return pactum
+          .spec()
+          .delete('/bookmarks/{id}')
+          .withPathParams('id', '$S{bookmarkId}')
+          .withHeaders({
+            Authorization:
+              'Bearer $S{userAccessToken}',
+          })
+          .expectStatus(204);
+      });
+      it('should get empty bookmarks', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks')
+          .withHeaders({
+            Authorization:
+              'Bearer $S{userAccessToken}',
+          })
+          .expectStatus(200)
+          .expectBody([]);
+      });
+    });
+  });
 });
