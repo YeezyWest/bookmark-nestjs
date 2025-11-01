@@ -30,6 +30,8 @@ export class JwtStrategy extends PassportStrategy(
     });
   }
 
+  
+
   async validate(payload: {
     sub: number;
     email: string;
