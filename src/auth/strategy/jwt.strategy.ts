@@ -29,7 +29,7 @@ export class JwtStrategy extends PassportStrategy(
       secretOrKey: secret,
     });
   }
-  
+
   async validate(payload: {
     sub: number;
     email: string;
